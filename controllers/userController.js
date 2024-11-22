@@ -7,6 +7,7 @@ import userModel from "../models/userModel.js";
 import dotenv from "dotenv";
 
 dotenv.config();
+
 // Create token
 const createToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -123,9 +124,8 @@ const forgotPassword = async (req, res) => {
 
         // Generate reset token and expiration
         const resetToken = crypto.randomBytes(32).toString("hex");
-        const tokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-        user.resetToken = tokenHash;
+        user.resetToken = resetToken;
         user.resetExpires = Date.now() + 10 * 60 * 1000; // Token valid for 10 minutes
         await user.save();
 
@@ -150,8 +150,10 @@ const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
     try {
-        const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-        const user = await userModel.findOne({ resetToken: tokenHash, resetExpires: { $gt: Date.now() } });
+        const user = await userModel.findOne({
+            resetToken: token, // Compare the plain token
+            resetExpires: { $gt: Date.now() }, // Ensure token is not expired
+        });
 
         if (!user) {
             return res.json({ success: false, message: "Token is invalid or expired" });
