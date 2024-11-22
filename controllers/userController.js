@@ -130,7 +130,7 @@ const forgotPassword = async (req, res) => {
         await user.save();
 
         // Send reset link via email
-        const resetUrl = `https://food-delivery-frontend-red.vercel.app/reset-password/${resetToken}`;
+        const resetUrl = `https://food-delivery-frontend-red.vercel.app/api/reset-password/${resetToken}`;
         await transporter.sendMail({
             from: process.env.EMAIL,
             to: user.email,
